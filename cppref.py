@@ -4,8 +4,6 @@ from sys import argv
 from bs4 import BeautifulSoup
 import requests
 
-
-#
 def search_to_text(query):
 	url = f"https://en.cppreference.com/mwiki/index.php?title=Special%3ASearch&search={query}"
 	if "list" in query:
@@ -13,28 +11,24 @@ def search_to_text(query):
 	r = requests.get(url)
 	return r.text
 
-def extract_content(soup):
-	jobs = []
-	for div in soup.find_all(name='div', attrs={'class':'row'}):
-		for a in div.find_all(name='a', attrs={'data-tn-element':'jobTitle'}):
-			jobs.append(a['title'])
-	return jobs
-
 def text_to_read(text):
 	soup = BeautifulSoup(text, 'html.parser')
-	readable = soup
-	content = []
-	for div in soup.find_all(name='div', attrs={'class':'t-dsc'}):
-		for a in div.find_all(name='div', attrs={'class':'t-dsc-member-div'}):
-			content.append(a['t-lines'])
-	#more work to do
-	content = soup.get_text()
-	readable = content[content.find("[edit] std::list"):]
-	xx = readable.find("Retrieved from \"https://en.cppreference.com/mwiki/index.php?title=cpp\"")
-	readable = readable[:xx]
-	return readable 
+	
+	all_content_c = soup.find(id="mw-content-text")
+	all_content = all_content_c.get_text()
+
+	ps = []
+	for i in all_content_c.find_all("p"):
+		ps.append(i.get_text())
+	readable = ps[2:]#absolute garbage
+	return readable
+
+def search_to_read(query):
+	return text_to_read( search_to_text( query ) ) 
 
 if __name__ == '__main__':
-	print( 
-		text_to_read( 
-			search_to_text( argv[1] ) ) )
+	
+	res = search_to_read( argv[1] )
+	print()
+	print(res)
+	print()
